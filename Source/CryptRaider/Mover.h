@@ -4,6 +4,8 @@
 
 #include "CoreMinimal.h"
 #include "Components/ActorComponent.h"
+#include "Sound/SoundBase.h"
+#include "Components/AudioComponent.h"
 #include "Mover.generated.h"
 
 
@@ -24,6 +26,20 @@ public:
 	// Called every frame
 	virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
 
+//	void SetShouldMove(bool NewShouldMove);
+
+//	UFUNCTION(BlueprintCallable)
+	void IncrementCurrentTriggerCount();
+
+//	UFUNCTION(BlueprintCallable)
+	void DecrementCurrentTriggerCount();
+
+	UPROPERTY(EditAnywhere)
+	int32 CurrentTriggerCount = 0;
+
+	UPROPERTY(BlueprintReadOnly)
+	bool PermanentlyOpened = false;
+
 private:
 	UPROPERTY(EditAnywhere)
 	FVector MoveOffset;
@@ -38,4 +54,24 @@ private:
 	FVector CurrentLocation;
 	FVector TargetLocation;
 	float Speed;
+
+	UPROPERTY(EditAnywhere)
+	int32 TotalTriggerToPermanentlyOpen = 2;
+	
+
+
+	UPROPERTY(EditAnywhere)
+	int32 MinimumTriggerRequirement = 1;
+
+	void CheckTriggerRequirement();
+
+	UPROPERTY(EditAnywhere)
+	bool FlipFlopMover = false;
+
+	bool Sounded = false;
+
+	UPROPERTY(EditAnywhere)
+	USoundBase* DoorScrapingSound;
+
+	UAudioComponent* SoundRef;
 };

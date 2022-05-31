@@ -3,6 +3,7 @@
 
 #include "Mover.h"
 #include "Math/UnrealMathUtility.h"
+#include "Kismet/GameplayStatics.h"
 
 // Sets default values for this component's properties
 UMover::UMover()
@@ -23,7 +24,12 @@ void UMover::BeginPlay()
 	OriginalLocation = GetOwner()->GetActorLocation();
 	TargetLocation = OriginalLocation + MoveOffset;
 	Speed = FVector::Distance(TargetLocation, OriginalLocation) / MoveTime;
-
+	SoundRef = UGameplayStatics::SpawnSoundAtLocation(GetWorld(), DoorScrapingSound, GetOwner()->GetActorLocation(), UE::Math::TRotator<double>::ZeroRotator, 1.0F, 1.0F, 0.0F, (USoundAttenuation*)nullptr, (USoundConcurrency*)nullptr, false);
+//	if(SoundRef!=nullptr)
+//	{
+		SoundRef->Stop();
+//	}
+	
 }
 
 
@@ -37,8 +43,78 @@ void UMover::TickComponent(float DeltaTime, ELevelTick TickType, FActorComponent
 		CurrentLocation = GetOwner()->GetActorLocation();
 		GetOwner()->SetActorLocation(FMath::VInterpConstantTo(CurrentLocation, TargetLocation, DeltaTime, Speed));
 	}
+	else
+	{
+		CurrentLocation = GetOwner()->GetActorLocation();
+		GetOwner()->SetActorLocation(FMath::VInterpConstantTo(CurrentLocation, OriginalLocation, DeltaTime, Speed));
+	}
 	
+	if(CurrentLocation != OriginalLocation && CurrentLocation != TargetLocation)
+	{
 	
+		if(!Sounded)
+		{
+			Sounded = true;
+	//		if(SoundRef!=nullptr)
+	//		{
+				SoundRef->Play();
+	//		}
+			UE_LOG(LogTemp, Warning, TEXT("Playsound"));
+		}
+		
+	}
+	else
+	{
+		if(Sounded)
+		{
+			Sounded = false;
+	//		if(SoundRef!=nullptr)
+	//		{
+				SoundRef->Stop();
+	//		}
+			UE_LOG(LogTemp, Warning, TEXT("PauseSound"));
+		}
+		
+	}
 	
+
 }
 
+void UMover::IncrementCurrentTriggerCount()
+{
+	if(!FlipFlopMover)
+	{
+		CurrentTriggerCount++;
+		CheckTriggerRequirement();
+	}
+	else
+	{
+		ShouldMove = !ShouldMove;
+	}
+}
+
+void UMover::DecrementCurrentTriggerCount()
+{
+	if(!FlipFlopMover)
+	{
+		CurrentTriggerCount--;
+		CheckTriggerRequirement();
+	}
+	else
+	{
+		ShouldMove = !ShouldMove;
+	}
+}
+
+void UMover::CheckTriggerRequirement()
+{
+	if(!PermanentlyOpened)
+	{
+		PermanentlyOpened = CurrentTriggerCount >= TotalTriggerToPermanentlyOpen;
+		ShouldMove = CurrentTriggerCount>=MinimumTriggerRequirement;
+	}
+	else
+	{
+		ShouldMove = true;
+	}
+}

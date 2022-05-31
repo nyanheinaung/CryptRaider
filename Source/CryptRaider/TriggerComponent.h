@@ -3,18 +3,21 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "Components/SceneComponent.h"
-#include "PhysicsEngine/PhysicsHandleComponent.h"
-#include "Grabber.generated.h"
+#include "Components/BoxComponent.h"
+#include "Mover.h"
+#include "TriggerComponent.generated.h"
 
+/**
+ * 
+ */
 UCLASS( ClassGroup=(Custom), meta=(BlueprintSpawnableComponent) )
-class CRYPTRAIDER_API UGrabber : public USceneComponent
+class CRYPTRAIDER_API UTriggerComponent : public UBoxComponent
 {
 	GENERATED_BODY()
 
 public:	
 	// Sets default values for this component's properties
-	UGrabber();
+	UTriggerComponent();
 
 protected:
 	// Called when the game starts
@@ -25,21 +28,19 @@ public:
 	virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
 
 	UFUNCTION(BlueprintCallable)
-	void Grab();
+	void SetMover(UMover* NewMover);
 
-	UFUNCTION(BlueprintCallable)
-	void Released();
+	UPROPERTY(EditAnywhere, BlueprintReadOnly)
+	FName RequiredTagToTriggerThis;
 
 private:
-	UPROPERTY(EditAnywhere)
-	float MaxGrabDistance = 200;
-		
-	float GrabRadius = 10;
+	AActor* GetAcceptableActor() const;
+	
+	UMover* Mover;
 
-//	UPROPERTY(EditAnywhere)
-//	float HoldDistance = 200;
+	bool LockingTriggeredOnce = false;
 
-	UPhysicsHandleComponent* GetPhysicsHandle() const;
+	bool UnlockingTriggeredOnce = false;
 
-	bool GetGrabbableInReach(FHitResult& OutHitResult) const;
+	void TriggeringMover();
 };
